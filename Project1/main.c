@@ -59,9 +59,6 @@ Shape shape[7] = {
 			},
 		}
 	},
-	{
-
-	}
 }
 
 int main() {
