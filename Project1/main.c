@@ -1,8 +1,9 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
 #include <windows.h>
+#include <time.h>
 
 #define LEFT_KEY 0x25     // The key to move left, default = 0x25 (left arrow)
 #define RIGHT_KEY 0x27    // The key to move right, default = 0x27 (right arrow)
@@ -391,7 +392,7 @@ int clearLine(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH]) {
     return linesCleared;
 }
 
-void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
+void logic_mode1(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
 {
     if (ROTATE_FUNC()) {
         int newRotate = (state->rotate + 1) % 4;
@@ -439,9 +440,10 @@ void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
             state->queue[2] = state->queue[3];
             state->queue[3] = rand() % 7;
 
-            if (!move(canvas, state->x, state->y, state->rotate, state->x, state->y, state->rotate, state->queue[0]))
+            if (!move(canvas, state->x, state->y, state->rotate, state->x, state->y, state->rotate, state->queue[0]) || state->score==3)
             {
                 printf("\033[%d;%dH\x1b[41m GAME OVER \x1b[0m\033[%d;%dH", CANVAS_HEIGHT - 3, CANVAS_WIDTH * 2 + 5, CANVAS_HEIGHT + 5, 0);
+                printf("Socre:%d\n", state->score);
                 exit(0);
             }
         }
@@ -449,8 +451,19 @@ void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State* state)
     return;
 }
 
+void hide_cursor() {
+    HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursor_info;
+    cursor_info.dwSize = sizeof(cursor_info);
+    cursor_info.bVisible = FALSE;
+    SetConsoleCursorInfo(console_handle, &cursor_info);
+}
+
 int main()
 {
+    clock_t start_time, end_time;
+    double execution_time;
+    hide_cursor();
     srand(time(NULL));
     State state = {
         .x = CANVAS_WIDTH / 2,
@@ -475,15 +488,33 @@ int main()
     }
 
     system("cls");
-    // printf("\e[?25l"); // hide cursor
+    //printf("\e[?25l"); // hide cursor
 
     move(canvas, state.x, state.y, state.rotate, state.x, state.y, state.rotate, state.queue[0]);
+    int mode;
+    mode = 0;
 
-    while (1)
-    {
-        logic(canvas, &state);
-        printCanvas(canvas, &state);
-        Sleep(100);
+    printf("Hello,welcome to play tetris~\n");
+    printf("There are two mode.\n 1.Three Lines \n 2.Unlimit\n Which one do you like?\n");
+    scanf_s("%d", &mode);
+    system("cls");
+
+    if (mode == 1) {
+        start_time = clock();
+        while (1) {
+            logic_mode1(canvas, &state);
+            printCanvas(canvas, &state);
+            Sleep(100);
+        }
+        end_time = clock();
+        execution_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+        printf("Time: %.2f秒\n", execution_time);
     }
-
+    else if(mode == 2){
+        while (1){
+            logic_mode1(canvas, &state);
+            printCanvas(canvas, &state);
+            Sleep(100);
+        }
+    }
 }
